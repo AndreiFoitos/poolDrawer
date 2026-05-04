@@ -4,9 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GOOGLE_STATIC_MAPS_URL = "https://maps.googleapis.com/maps/api/staticmap"
-
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+GOOGLE_STATIC_MAPS_URL = os.getenv("GOOGLE_STATIC_MAPS_URL")
+NOMINATIM_URL = os.getenv("NOMINATIM_URL")
 
 async def get_coordinates(address: str) -> dict:
     params = {
