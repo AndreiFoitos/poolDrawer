@@ -1,8 +1,10 @@
 import os
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
+
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Load your .env file
 load_dotenv()
@@ -19,12 +21,13 @@ if config.config_file_name is not None:
 
 # Import your models here so Alembic can detect changes
 # (you'll add to this as you create model files)
-from models.base import Base
-from models.user import User                           # noqa: F401
-from models.contractor_profile import ContractorProfile  # noqa: F401
-from models.design import Design                       # noqa: F401
-from models.project import Project                     # noqa: F401
-from models.quote import Quote                         # noqa: F401
+from models.base import Base  # noqa: E402
+from models.contractor_profile import ContractorProfile  # noqa: E402, F401
+from models.design import Design  # noqa: E402, F401
+from models.project import Project  # noqa: E402, F401
+from models.quote import Quote  # noqa: E402, F401
+from models.user import User  # noqa: E402, F401
+
 target_metadata = Base.metadata
 target_metadata = Base.metadata
 

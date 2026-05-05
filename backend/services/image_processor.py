@@ -1,5 +1,6 @@
-from PIL import Image, ImageDraw
 import io
+
+from PIL import Image, ImageDraw
 
 COLOR_MAP = {
     "classic":   (30,  144, 255, 160),
@@ -28,7 +29,6 @@ def render_pool(
     w = x2 - x1
     h = y2 - y1
     cx = x1 + w / 2
-    cy = y1 + h / 2
 
     if shape == "oval":
         draw.ellipse([x1, y1, x2, y2], fill=fill, outline=COPING, width=COPING_W)

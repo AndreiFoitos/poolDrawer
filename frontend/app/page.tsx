@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import AddressSearch from "@/components/AddressSearch";
 import PoolCanvas from "@/components/PoolCanvas";
 import PoolCustomizer, { PoolShape } from "@/components/PoolCustomizer";
@@ -20,13 +20,12 @@ export default function Home() {
   const [toast, setToast]             = useState<string | null>(null);
   const isFirstRender                 = useRef(true);
 
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    if (!coords) return;
-    fetchSatellite(coords.lat, coords.lng, zoom);
-  }, [zoom]);
+  // Keep a ref to coords so the zoom effect can read the latest value
+  // without listing coords as a dependency (which would re-run on every pan)
+  const coordsRef = useRef<{ lat: number; lng: number } | null>(null);
+  useEffect(() => { coordsRef.current = coords; }, [coords]);
 
-  const fetchSatellite = async (lat: number, lng: number, z: number) => {
+  const fetchSatellite = useCallback(async (lat: number, lng: number, z: number) => {
     setLoading(true);
     setRenderedUrl(null);
     try {
@@ -36,12 +35,19 @@ export default function Home() {
       const blob = await imgRes.blob();
       setRawBlob(blob);
       setImageUrl(URL.createObjectURL(blob));
-    } catch (err: any) {
-      setToast(err.message);
+    } catch (err: unknown) {
+      setToast(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (!coordsRef.current) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSatellite(coordsRef.current.lat, coordsRef.current.lng, zoom);
+  }, [zoom, fetchSatellite]);
 
   const handleImageReady = (url: string, blob: Blob, lat: number, lng: number) => {
     setImageUrl(url);
@@ -71,8 +77,8 @@ export default function Home() {
       );
       if (!res.ok) throw new Error("Render failed — please try again");
       setRenderedUrl(URL.createObjectURL(await res.blob()));
-    } catch (err: any) {
-      setToast(err.message);
+    } catch (err: unknown) {
+      setToast(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setRendering(false);
     }
@@ -134,6 +140,7 @@ export default function Home() {
       {renderedUrl && !rendering && (
         <div className="flex flex-col items-center gap-4">
           <p className="text-green-700 font-semibold text-lg">Your pool</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={renderedUrl}
             alt="Rendered pool"

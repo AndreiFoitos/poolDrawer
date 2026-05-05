@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import geocode, satellite, render
+
+from routers import geocode, render, satellite
 
 app = FastAPI()
 

@@ -1,9 +1,12 @@
+import enum
 import uuid
-from sqlalchemy import Column, String, Enum, DateTime, func, ForeignKey
+
+from sqlalchemy import Column, DateTime, Enum, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from models.base import Base
-import enum
+
 
 class UserRole(enum.Enum):
     homeowner = "homeowner"

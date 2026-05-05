@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PoolShape } from "./PoolCustomizer";
 
 interface DrawState {
@@ -29,27 +29,31 @@ function formatSize(px: number, mpp: number): string {
 }
 
 export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: PoolCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [drawing, setDrawing] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
-  const [sizeLabel, setSizeLabel] = useState<string | null>(null);
-  const drawState = useRef<DrawState | null>(null);
-
-  useEffect(() => { clearCanvas(); }, [shape]);
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const drawState   = useRef<DrawState | null>(null);
+  const [drawing, setDrawing]       = useState(false);
+  const [confirmed, setConfirmed]   = useState(false);
+  const [sizeLabel, setSizeLabel]   = useState<string | null>(null);
+  // Track whether there is a drawing via state (not ref) so the button can react
+  const [hasDrawing, setHasDrawing] = useState(false);
 
   const getCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
 
-  const clearCanvas = () => {
+  // Define clearCanvas with useCallback BEFORE the useEffect that uses it
+  const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
     drawState.current = null;
     setConfirmed(false);
     setSizeLabel(null);
-  };
+    setHasDrawing(false);
+  }, []);
+
+  useEffect(() => { clearCanvas(); }, [shape, clearCanvas]);
 
   const drawShape = (ctx: CanvasRenderingContext2D, s: DrawState) => {
     const { startX, startY, endX, endY } = s;
@@ -74,7 +78,6 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
       ctx.fill(); ctx.stroke();
 
     } else if (shape === "kidney") {
-      // Kidney: two overlapping circles offset vertically
       ctx.beginPath();
       ctx.ellipse(cx - w * 0.05, startY + h * 0.3, Math.abs(w * 0.45), Math.abs(h * 0.32), 0, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
@@ -85,11 +88,9 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
     } else if (shape === "lshape") {
       const x1 = Math.min(startX, endX);
       const y1 = Math.min(startY, endY);
-      // Main arm
       ctx.beginPath();
       ctx.rect(x1, y1, w * 0.5, h);
       ctx.fill(); ctx.stroke();
-      // Cross arm
       ctx.beginPath();
       ctx.rect(x1, y1 + h * 0.6, w, h * 0.4);
       ctx.fill(); ctx.stroke();
@@ -102,6 +103,7 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
     setDrawing(true);
     setConfirmed(false);
     setSizeLabel(null);
+    setHasDrawing(false);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -114,6 +116,7 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
   const handleMouseUp = () => {
     setDrawing(false);
     if (drawState.current) {
+      setHasDrawing(true);
       const mpp = metersPerPixel(zoom, lat);
       const { startX, startY, endX, endY } = drawState.current;
       const w = formatSize(endX - startX, mpp);
@@ -127,6 +130,7 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
       <p className="text-sm text-gray-500">Click and drag to place your pool</p>
 
       <div className="relative" style={{ width: 640, height: 640 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={imageUrl} alt="Satellite view" width={640} height={640} className="rounded-xl" />
         <canvas
           ref={canvasRef}
@@ -150,8 +154,13 @@ export default function PoolCanvas({ imageUrl, shape, zoom, lat, onConfirm }: Po
           Clear
         </button>
         <button
-          onClick={() => { if (drawState.current) { setConfirmed(true); onConfirm(drawState.current); } }}
-          disabled={!drawState.current || confirmed}
+          onClick={() => {
+            if (drawState.current) {
+              setConfirmed(true);
+              onConfirm(drawState.current);
+            }
+          }}
+          disabled={!hasDrawing || confirmed}
           className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-40"
         >
           {confirmed ? "Pool placed" : "Confirm pool"}

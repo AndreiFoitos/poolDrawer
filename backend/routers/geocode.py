@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+
 from services.maps import get_coordinates
 
 router = APIRouter(prefix="/geocode", tags=["geocode"])

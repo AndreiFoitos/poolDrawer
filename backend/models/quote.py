@@ -1,8 +1,11 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func, ForeignKey, Text, Numeric
+
+from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from models.base import Base
+
 
 class Quote(Base):
     __tablename__ = "quotes"

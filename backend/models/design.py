@@ -1,8 +1,11 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func, ForeignKey, Integer
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
+
 from models.base import Base
+
 
 class Design(Base):
     __tablename__ = "designs"

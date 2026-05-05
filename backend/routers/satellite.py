@@ -1,7 +1,9 @@
+import io
+
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
+
 from services.maps import get_satellite_image
-import io
 
 router = APIRouter(prefix="/satellite", tags=["satellite"])
 

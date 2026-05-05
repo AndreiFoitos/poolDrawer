@@ -1,7 +1,9 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from fastapi.responses import StreamingResponse
-from services.image_processor import render_pool
 import io
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
+
+from services.image_processor import render_pool
 
 router = APIRouter(prefix="/render-pool", tags=["render"])
 
