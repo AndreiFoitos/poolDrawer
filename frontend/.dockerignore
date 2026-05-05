@@ -1,0 +1,27 @@
+# Dependencies — installed fresh inside the container
+node_modules/
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Environment files — passed in via docker-compose, never baked in
+.env
+.env.local
+.env*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
