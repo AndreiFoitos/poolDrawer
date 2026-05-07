@@ -1,6 +1,6 @@
 """add auth trigger and rls
 
-Revision ID: <paste_your_generated_id_here>
+Revision ID: 029763e4bd9d
 Revises: 8b1c271885cd
 Create Date: 2026-05-05
 
@@ -9,7 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 
-revision: str = "<paste_your_generated_id_here>"
+revision: str = "029763e4bd9d"
 down_revision: Union[str, Sequence[str], None] = "8b1c271885cd"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

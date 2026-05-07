@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -12,9 +11,8 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [isContractor, setIsContractor] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const { register } = useAuth();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,42 +28,15 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, contractor_intent: isContractor },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (authError) {
-      setError(authError.message);
+    try {
+      await register(email, password, fullName, isContractor ? "contractor" : "homeowner");
+      // register() in AuthContext handles redirect to /dashboard
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSuccess(true);
-    setLoading(false);
   };
-
-  if (success) {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-5xl mb-4">📬</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
-          <p className="text-gray-500 text-sm">
-            We&apos;ve sent a verification link to <strong>{email}</strong>.
-            Click it to activate your account.
-          </p>
-          <p className="text-gray-400 text-xs mt-4">Didn&apos;t receive it? Check your spam folder.</p>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -108,7 +79,7 @@ export default function RegisterPage() {
               <input type="checkbox" checked={isContractor} onChange={(e) => setIsContractor(e.target.checked)} className="mt-0.5 accent-blue-600" />
               <div>
                 <p className="text-sm font-medium text-gray-700">I&apos;m a pool contractor</p>
-                <p className="text-xs text-gray-400 mt-0.5">You&apos;ll complete a contractor profile after verifying your email. Contractor accounts require admin approval.</p>
+                <p className="text-xs text-gray-400 mt-0.5">Contractor accounts require admin approval before going live.</p>
               </div>
             </label>
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}

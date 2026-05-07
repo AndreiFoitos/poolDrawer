@@ -13,18 +13,15 @@ class UserRole(enum.Enum):
     contractor = "contractor"
     admin = "admin"
 
+
 class User(Base):
     __tablename__ = "users"
 
-    # This ID must match the ID in Supabase's auth.users table
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=True)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.homeowner)
+    password_hash = Column(String, nullable=True)   # nullable so existing rows don't break
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

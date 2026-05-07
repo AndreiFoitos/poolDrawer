@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const { login } = useAuth();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
 
@@ -19,26 +19,23 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
+    try {
+      await login(email, password);
+      // login() in AuthContext handles the redirect to /dashboard
+      // but if there's a specific redirectTo, handle it here
+      if (redirectTo !== "/dashboard") {
+        window.location.href = redirectTo;
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push(redirectTo);
-    router.refresh();
   };
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo / brand */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Pool Drawer</h1>
           <p className="text-gray-500 text-sm mt-1">Sign in to your account</p>
@@ -67,10 +64,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-xs text-blue-600 hover:text-blue-700"
-                >
+                <Link href="/auth/forgot-password" className="text-xs text-blue-600 hover:text-blue-700">
                   Forgot password?
                 </Link>
               </div>
